@@ -42,34 +42,34 @@ impl Chip8 {
                 0x3FFF => {
                     self.skip_if_equal(
                         ((opcode & 0xF000) >> 8) as u8, // x
-                        (opcode & 0x00FF) as u8 // kk
+                        (opcode & 0x00FF) as u8,        // kk
                     ); 
                 },
                 // SKIP the following instruction if the value of rVX is NOT EQUAL NN
                 0x4FFF => { 
                     self.skip_if_not_equal(
                         ((opcode & 0xF000) >>  8) as u8, // x
-                        (opcode & 0x00FF) as u8 // kk
+                        (opcode & 0x00FF) as u8,         // kk
                     );
                 },
                 // SKIP the following instruction if the value of rVX is EQUAL to NN
                 0x5FFF => {
                     self.skip_if_equal(
                         ((opcode & 0xF000) >>  8) as u8, // x
-                        ((opcode & 0x0F00) >>  4) as u8 // y
+                        ((opcode & 0x0F00) >>  4) as u8, // y
                     );
                 },
                 // store (LOAD) NN in register VX
                 0x6FFF => {
                     self.load(
                         ((opcode & 0xF000) >>  8) as u8, // x
-                        (opcode & 0x00FF) as u8 // kk
+                        (opcode & 0x00FF) as u8,         // kk
                     );
                 },
                 0x7FFF => {
                     self.add(
                         ((opcode & 0xF000) >>  8) as u8, // x
-                        (opcode & 0x00FF) as u8 // kk
+                        (opcode & 0x00FF) as u8,         // kk
                     );
                 },
                 0x8FFF => {
