@@ -1,2 +1,2 @@
 # cpu-rs
-A library of CPUs built in rust.
+A library of rusty CPUs.
