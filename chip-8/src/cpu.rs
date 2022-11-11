@@ -110,7 +110,7 @@ impl Chip8 {
         }
     }
 
-    /// (00ee) RETURN from the current sub-routine
+    /// (00ee) RETURN from the current sub-routine.
     fn ret(&mut self) {
         if self.stack_pointer == 0 {
             panic!("stack underflow!");
@@ -120,12 +120,12 @@ impl Chip8 {
         self.program_counter = self.stack[self.stack_pointer] as usize;
     }
 
-    /// (1nnn) JUMP to location 'nnn'
+    /// (1nnn) JUMP to location 'nnn'.
     fn jump(&mut self, addr: u16) { 
         self.program_counter = addr as usize;
     }
 
-    /// (2nnn) CALL subroutine starting at address 'nnn'
+    /// (2nnn) CALL subroutine starting at address 'nnn'.
     fn call(&mut self, addr: u16) {
         let sp = self.stack_pointer;
         let stack = &mut self.stack;
@@ -147,19 +147,19 @@ impl Chip8 {
         }
     }
 
-    /// (4xkk) SKIP the following instruction if the value of register 'Vx' is NOT EQUAL 'kk'
+    /// (4xkk) SKIP the following instruction if the value of register 'Vx' is NOT EQUAL 'kk'.
     fn skip_next_if_not_equal(&mut self, vx: u8, kk: u8) {
         if vx != kk {
             self.program_counter += 2;
         }
     }
 
-    /// (6xkk) LOAD value 'kk' in register 'Vx'
+    /// (6xkk) LOAD value 'kk' in register 'Vx'.
     fn load(&mut self, vx: u8, kk: u8) {
         self.registers[vx as usize] = kk; 
     }
 
-    /// (7xkk) ADD value 'kk' to register 'Vx'
+    /// (7xkk) ADD value 'kk' to register 'Vx'.
     fn add(&mut self, vx: u8, kk: u8) {
         self.registers[vx as usize] += kk; 
     }
