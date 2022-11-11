@@ -46,7 +46,7 @@ impl Chip8 {
                     );
                 },
                 0x5000..=0x5FF0 => {
-                    // (5xkk)
+                    // (5xy0)
                     self.skip_next_if_equal(
                         ((opcode & 0x0F00) >>  8) as u8, // x
                         ((opcode & 0x00F0) >>  4) as u8, // y
