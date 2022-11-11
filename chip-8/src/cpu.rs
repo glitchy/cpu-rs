@@ -13,98 +13,94 @@ impl Chip8 {
             let op_byte2 = self.memory[self.program_counter + 1] as u16;
             let opcode: u16 = op_byte1 << 8 | op_byte2;
 
-            // ##### xykk #####
-            // let x = ((opcode & 0xF000) >>  8) as u8;
-            // let y = ((opcode & 0x0F00) >>  4) as u8;
-            // let kk = (opcode & 0x00FF) as u8;
-            // let nnn = opcode & 0x0FFF;
-
             self.program_counter += 2;
 
             match opcode {
                 0x0000 => { return; },
                 0x00E0 => { /* clear screen */ },
-                // RETURN from subroutine
                 0x00EE => { self.ret(); },
-                // JUMP to address NNN
-                0x1FFF => { 
+                0x1000..=0x1FFF => { 
+                    // (1nnn)
                     self.jump(
                         opcode & 0x0FFF // nnn
                     ); 
                 },
-                // CALL subroutine starting at address 'nnn'
                 0x2000..=0x2FFF => { 
+                    // (2nnn)
                     self.call(
                         opcode & 0x0FFF // nnn
                     ); 
                 },
-                // (3xkk) SKIP the following instruction if the value of register 'Vx' is EQUAL to 'kk'
                 0x3000..=0x3FFF => {
+                    // (3xkk)
                     self.skip_next_if_equal(
-                        ((opcode & 0xF000) >> 8) as u8, // x
+                        ((opcode & 0x0F00) >> 8) as u8, // x
                         (opcode & 0x00FF) as u8,        // kk
                     ); 
                 },
-                // (4xkk) SKIP the following instruction if the value of register 'Vx' is NOT EQUAL 'kk'
                 0x4000..=0x4FFF => { 
+                    // (4xkk)
                     self.skip_next_if_not_equal(
-                        ((opcode & 0xF000) >>  8) as u8, // x
+                        ((opcode & 0x0F00) >>  8) as u8, // x
                         (opcode & 0x00FF) as u8,         // kk
                     );
                 },
-                // (5xkk) SKIP the following instruction if the value of register 'Vx' is EQUAL to 'Vy'
                 0x5000..=0x5FF0 => {
+                    // (5xkk)
                     self.skip_next_if_equal(
-                        ((opcode & 0xF000) >>  8) as u8, // x
-                        ((opcode & 0x0F00) >>  4) as u8, // y
+                        ((opcode & 0x0F00) >>  8) as u8, // x
+                        ((opcode & 0x00F0) >>  4) as u8, // y
                     );
                 },
-                // (6xkk) store (LOAD) value 'kk' in register 'vx'
                 0x6000..=0x6FFF => {
+                    // (6xkk)
                     self.load(
-                        ((opcode & 0xF000) >>  8) as u8, // x
+                        ((opcode & 0x0F00) >>  8) as u8, // x
                         (opcode & 0x00FF) as u8,         // kk
                     );
                 },
-                // ADD value 'kk' to register 'vx'
                 0x7000..=0x7FFF => {
+                    // (7xkk)
                     self.add(
-                        ((opcode & 0xF000) >>  8) as u8, // x
+                        ((opcode & 0x0F00) >>  8) as u8, // x
                         (opcode & 0x00FF) as u8,         // kk
                     );
                 },
                 0x8000..=0x8FFF => {
                     match (opcode & 0x000F) as u8 {
                         0 => {
+                            // (8xy0)
                             self.load(
-                                ((opcode & 0xF000) >>  8) as u8, // x
-                                self.registers[((opcode & 0x0F00) >>  4) as usize]) 
+                                ((opcode & 0x0F00) >>  8) as u8, // x
+                                self.registers[(((opcode & 0x00F0) >>  4) as u8) as usize]) 
                         },
                         1 => { 
+                            // (8xy1)
                             self.or_xy(
-                                ((opcode & 0xF000) >>  8) as u8, // x
-                                ((opcode & 0x0F00) >>  4) as u8, // y
+                                ((opcode & 0x0F00) >>  8) as u8, // x
+                                ((opcode & 0x00F0) >>  4) as u8, // y
                             ) 
                         },
                         2 => {
+                            // (8xy2)
                             self.and_xy(
-                                ((opcode & 0xF000) >>  8) as u8, // x
-                                ((opcode & 0x0F00) >>  4) as u8, // y
+                                ((opcode & 0x0F00) >>  8) as u8, // x
+                                ((opcode & 0x00F0) >>  4) as u8, // y
                             ) 
                         },
                         3 => {
+                            // (8xy3)
                             self.xor_xy(
-                                ((opcode & 0xF000) >>  8) as u8, // x
-                                ((opcode & 0x0F00) >>  4) as u8, // y
+                                ((opcode & 0x0F00) >>  8) as u8, // x
+                                ((opcode & 0x00F0) >>  4) as u8, // y
                             ) 
                         },
                         4 => { 
-                            // (8xy4) ADD 'Vx' to 'Vy'--
-                            // if result > 8 bits, 'VF' is set to 1, else 0
+                            // (8xy4)
                             self.add_xy(
-                                ((opcode & 0xF000) >>  8) as u8, // x
-                                ((opcode & 0x0F00) >>  4) as u8, // y
-                            ) 
+                                ((opcode & 0x0F00) >>  8) as u8, // x
+                                ((opcode & 0x00F0) >>  4) as u8, // y
+                            ); 
                         },
                         _ => { todo!("opcode: {:04x}", opcode); },
                     }
@@ -117,7 +113,7 @@ impl Chip8 {
     /// (00ee) RETURN from the current sub-routine
     fn ret(&mut self) {
         if self.stack_pointer == 0 {
-            panic!("stack overflow!");
+            panic!("stack underflow!");
         }
 
         self.stack_pointer -= 1;
@@ -143,10 +139,10 @@ impl Chip8 {
         self.program_counter = addr as usize;
     }
 
-    /// (3xkk | 5xy0) SKIP the following instruction if the value of register 'Vx' is EQUAL to 't'.
-    /// Parameter 't' can be either 'kk' or 'y'.
-    fn skip_next_if_equal(&mut self, vx: u8, t: u8) {
-        if vx == t {
+    /// (3xkk | 5xy0) SKIP the following instruction if the value of register 'Vx' is EQUAL to 'v'.
+    /// Parameter 'v' can be either 'kk' or 'y'.
+    fn skip_next_if_equal(&mut self, vx: u8, v: u8) {
+        if vx == v {
             self.program_counter += 2;
         }
     }
@@ -194,10 +190,7 @@ impl Chip8 {
 
     /// (8xy4) ADD 'Vx' to 'Vy'--if result > 8 bits, 'VF' is set to 1, else 0.
     fn add_xy(&mut self, x: u8, y: u8) {
-        let arg1 = self.registers[x as usize];
-        let arg2 = self.registers[y as usize];
-
-        let (val, overflow) = arg1.overflowing_add(arg2);
+        let (val, overflow) = self.registers[x as usize].overflowing_add(self.registers[y as usize]);
         self.registers[x as usize] = val;
 
         if overflow {
